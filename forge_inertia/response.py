@@ -24,11 +24,30 @@ def _load_root_html() -> str:
 
 
 def _render_html(page: dict) -> str:
-    page_json = json.dumps(page).replace("'", "&#39;")
-    return _load_root_html().replace(
-        '<div id="app">',
-        f"<div id=\"app\" data-page='{page_json}'>",
-        1,
+    page_json = json.dumps(page)
+    script_tag = f'<script type="application/json" data-page="app">{page_json}</script>'
+    return _load_root_html().replace("</body>", f"{script_tag}\n</body>", 1)
+
+
+def _dev_html(page: dict) -> str:
+    page_json = json.dumps(page)
+    base = _config.vite_dev_url.rstrip("/")
+    entry = _config.vite_entry.lstrip("/")
+    return (
+        "<!doctype html>\n"
+        "<html lang=\"en\">\n"
+        "  <head>\n"
+        "    <meta charset=\"UTF-8\" />\n"
+        "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n"
+        "    <title>App</title>\n"
+        "  </head>\n"
+        "  <body>\n"
+        "    <div id=\"app\"></div>\n"
+        f"    <script type=\"application/json\" data-page=\"app\">{page_json}</script>\n"
+        f"    <script type=\"module\" src=\"{base}/@vite/client\"></script>\n"
+        f"    <script type=\"module\" src=\"{base}/{entry}\"></script>\n"
+        "  </body>\n"
+        "</html>"
     )
 
 
@@ -48,7 +67,8 @@ class InertiaResponse(Response):
                 headers={"X-Inertia": "true", "Vary": "X-Inertia"},
             )
         else:
-            super().__init__(content=_render_html(page), media_type="text/html")
+            html = _dev_html(page) if _config.dev_mode else _render_html(page)
+            super().__init__(content=html, media_type="text/html")
 
 
 def Inertia(component: str, props: dict | None = None, *, request: Request) -> InertiaResponse:
