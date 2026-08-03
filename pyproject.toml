@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "forge-inertia"
+version = "0.1.0"
+description = "Inertia.js adapter for forge-kits / FastAPI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "forge-kits>=1.5.1",
+    "fastapi>=0.138",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["forge_inertia"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
