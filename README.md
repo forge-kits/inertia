@@ -12,7 +12,7 @@ pip install forge-kits-inertia
 ## Requirements
 
 - Python ≥ 3.11
-- forge-kits ≥ 1.5.1
+- forge-kits ≥ 1.5.9
 - A Vite + Vue 3 (or React/Svelte) frontend with `@inertiajs/vue3` (or equivalent)
 
 ---
@@ -23,10 +23,7 @@ pip install forge-kits-inertia
 
 ```python
 # config/project.py
-from forge_inertia import InertiaProvider, inertia_config
-
-inertia_config.dev_mode     = env("INERTIA_DEV", False)
-inertia_config.vite_dev_url = env("VITE_DEV_URL", "http://localhost:5173")
+from forge_inertia import InertiaProvider
 
 config = {
     "providers": [InertiaProvider],
@@ -34,7 +31,24 @@ config = {
 }
 ```
 
-### 2. Frontend entry (`src/main.ts`)
+### 2. Create `config/inertia.py`
+
+```python
+# config/inertia.py
+from forgeapi import env
+
+config = {
+    "dev_mode":     env("INERTIA_DEV", False),
+    "vite_dev_url": env("VITE_DEV_URL", "http://localhost:5173"),
+    # Optional overrides (shown with defaults):
+    # "root_view":  "public/build/index.html",
+    # "public_dir": "public",
+    # "vite_entry": "src/main.ts",
+    # "version":    "",   # auto-detected from Vite manifest when empty
+}
+```
+
+### 3. Frontend entry (`src/main.ts`)
 
 ```ts
 import { createApp, h } from 'vue'
@@ -54,15 +68,14 @@ createInertiaApp({
 })
 ```
 
-### 3. Vite config (`vite.config.ts`)
+### 4. Vite config (`vite.config.ts`)
 
 ```ts
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import inertia from '@inertiajs/vite'
 
 export default defineConfig({
-  plugins: [vue(), inertia()],
+  plugins: [vue()],
   build: {
     outDir: '../public/build',
     emptyOutDir: true,
@@ -90,6 +103,17 @@ class DashboardController(Controller):
 
 The component name maps directly to `Pages/Dashboard.vue` (or `.tsx`, `.svelte`).
 
+### Lazy (callable) props
+
+Props that are callables are only evaluated when actually needed — useful for partial reloads:
+
+```python
+return Inertia("Dashboard", props={
+    "user":  current_user.dict(),       # always evaluated
+    "stats": lambda: get_heavy_stats(), # skipped on partial reloads that don't request it
+}, request=request)
+```
+
 ---
 
 ## Shared data
@@ -97,7 +121,7 @@ The component name maps directly to `Pages/Dashboard.vue` (or `.tsx`, `.svelte`)
 Equivalent of Laravel's `HandleInertiaRequests` middleware — data shared on every response.
 
 ```python
-# config/project.py  (or a dedicated boot file)
+# config/project.py (or a dedicated boot file)
 from forge_inertia import inertia_share
 
 # Static value
@@ -109,24 +133,35 @@ inertia_share("auth", lambda req: {
 })
 ```
 
-Shared props are merged with page props on every Inertia response, just like Laravel.
+Shared props are merged with page props on every Inertia response. Page props override shared props on key collision.
 
 ---
 
-## Configuration
+## Partial reloads
+
+forge-inertia handles `X-Inertia-Partial-Data` / `X-Inertia-Partial-Component` automatically:
+
+- Props not in the requested set are excluded from the response.
+- Shared prop callables not in the set are never called.
+- Page prop callables (lambdas) not in the set are never called.
+- If the component name doesn't match, all props are returned normally.
+
+No controller changes required — the adapter filters at the response layer.
+
+---
+
+## Configuration reference
 
 All options with their defaults:
 
-```python
-from forge_inertia import inertia_config
-
-inertia_config.root_view    = "public/build/index.html"  # compiled HTML shell
-inertia_config.public_dir   = "public"                   # static assets root
-inertia_config.version      = ""                         # auto-set from Vite manifest
-inertia_config.dev_mode     = False                      # True → serve from Vite dev server
-inertia_config.vite_dev_url = "http://localhost:5173"
-inertia_config.vite_entry   = "src/main.ts"
-```
+| Key | Default | Description |
+|---|---|---|
+| `root_view` | `"public/build/index.html"` | Compiled HTML shell served on initial load |
+| `public_dir` | `"public"` | Static assets root (mounted at `/build`) |
+| `version` | `""` | Asset version; auto-set from Vite manifest when empty |
+| `dev_mode` | `False` | `True` → serve from Vite dev server (full HMR, no build step) |
+| `vite_dev_url` | `"http://localhost:5173"` | Vite dev server base URL |
+| `vite_entry` | `"src/main.ts"` | Frontend entry point (injected in dev HTML shell) |
 
 ---
 
@@ -154,13 +189,11 @@ npm run build   # outputs to public/build/
 forgeapi runserver
 ```
 
-`InertiaProvider` auto-mounts `/build` as static files and reads the Vite manifest to set the asset version hash.
+`InertiaProvider` auto-mounts `/build` as static files and reads the Vite manifest to set the asset version hash (SHA-1, deterministic across restarts).
 
 ---
 
 ## Protocol compatibility
-
-forge-inertia implements the full [Inertia.js protocol](https://inertiajs.com/the-protocol):
 
 | Feature | Status |
 |---|---|
@@ -169,6 +202,6 @@ forge-inertia implements the full [Inertia.js protocol](https://inertiajs.com/th
 | Asset version mismatch → 409 + hard reload | ✅ |
 | POST/PUT/PATCH/DELETE 302 → 303 redirect | ✅ |
 | Shared props (per-request callables) | ✅ |
+| Partial reloads (`X-Inertia-Partial-Data`) | ✅ |
+| Lazy (callable) page props | ✅ |
 | SSR | ❌ not yet |
-
----

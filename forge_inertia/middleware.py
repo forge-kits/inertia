@@ -21,8 +21,8 @@ class InertiaMiddleware(BaseHTTPMiddleware):
         if (
             request.method == "GET"
             and request.headers.get("X-Inertia")
-            and _config.version
-            and request.headers.get("X-Inertia-Version", "") != _config.version
+            and _config["version"]
+            and request.headers.get("X-Inertia-Version", "") != _config["version"]
         ):
             return Response(
                 status_code=409,
