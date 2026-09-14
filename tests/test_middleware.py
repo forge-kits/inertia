@@ -3,8 +3,8 @@ import httpx
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse, JSONResponse
 
-from forge_inertia.middleware import InertiaMiddleware
-from forge_inertia.config import _config
+from forgeapi.inertia.middleware import InertiaMiddleware
+from forgeapi.inertia.config import _config
 
 
 def make_app():

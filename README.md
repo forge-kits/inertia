@@ -12,7 +12,7 @@ pip install forge-kits-inertia
 ## Requirements
 
 - Python ≥ 3.11
-- forge-kits ≥ 1.5.9
+- forge-kits ≥ 1.6.3
 - A Vite + Vue 3 (or React/Svelte) frontend with `@inertiajs/vue3` (or equivalent)
 
 ---
@@ -23,7 +23,7 @@ pip install forge-kits-inertia
 
 ```python
 # config/project.py
-from forge_inertia import InertiaProvider
+from forgeapi.inertia import InertiaProvider
 
 config = {
     "providers": [InertiaProvider],
@@ -91,7 +91,7 @@ export default defineConfig({
 from fastapi import Request
 from fastapi.responses import Response
 from forgeapi.controllers import Controller, route
-from forge_inertia import Inertia
+from forgeapi.inertia import Inertia
 
 class DashboardController(Controller):
     prefix = "/dashboard"
@@ -122,7 +122,7 @@ Equivalent of Laravel's `HandleInertiaRequests` middleware — data shared on ev
 
 ```python
 # config/project.py (or a dedicated boot file)
-from forge_inertia import inertia_share
+from forgeapi.inertia import inertia_share
 
 # Static value
 inertia_share("app_name", "My App")

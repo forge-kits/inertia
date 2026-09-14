@@ -1,7 +1,7 @@
 import pytest
-from forge_inertia.config import _config, _DEFAULTS
-from forge_inertia.share import _reset_shared
-from forge_inertia import response as _resp_module
+from forgeapi.inertia.config import _config, _DEFAULTS
+from forgeapi.inertia.share import _reset_shared
+from forgeapi.inertia import response as _resp_module
 
 
 @pytest.fixture(autouse=True)

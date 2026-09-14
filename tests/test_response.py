@@ -3,10 +3,10 @@ import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import Response
 
-from forge_inertia.response import Inertia
-from forge_inertia.middleware import InertiaMiddleware
-from forge_inertia.config import _config
-from forge_inertia.share import share
+from forgeapi.inertia.response import Inertia
+from forgeapi.inertia.middleware import InertiaMiddleware
+from forgeapi.inertia.config import _config
+from forgeapi.inertia.share import share
 
 
 def make_app(component="Dashboard", props=None):

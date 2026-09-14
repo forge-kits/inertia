@@ -33,7 +33,7 @@ Repository = "https://github.com/forge-kits/inertia"
 Issues = "https://github.com/forge-kits/inertia/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["forge_inertia"]
+packages = ["forgeapi/inertia"]
 
 [project.optional-dependencies]
 dev = [
